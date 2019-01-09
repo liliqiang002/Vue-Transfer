@@ -57,12 +57,12 @@ export default {
     },
     methods: {
         dropRight (event) {
-            this.drop(this.data1, this.data2)
+            this.drop(event,this.data1, this.data2)
         },
         dropLeft (event) {
-          this.drop(this.data2, this.data1)
+          this.drop(event,this.data2, this.data1)
         },
-        drop (handle, target) {
+        drop (event,handle, target) {
             let id = event.dataTransfer.getData('id')
             handle.forEach((item,index)=>{
                 if (item.id == id) {
