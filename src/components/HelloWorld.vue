@@ -3,7 +3,7 @@
         <div class="box">
             <div class="title">
                 <span :class="{active: leftSelect === data1.length}" @click="selectAll(data1)">表2</span>
-                <span>{{leftSelect}}/{{data1.length}}</span>
+                <span>{{leftSelect? leftSelect: 0}}/{{data1.length}}</span>
             </div>
             <div @drop="dropPub($event, 2)" @dragover.prevent class="left">
                 
@@ -26,7 +26,7 @@
         <div class="box">
             <div class="title">
                 <span :class="{active: rightSelect === data2.length}" @click="selectAll(data2)">表2</span>
-                <span>{{rightSelect}}/{{data2.length}}</span>
+                <span>{{rightSelect? rightSelect : 0}}/{{data2.length}}</span>
             </div>
             <div @drop="dropPub($event, 1)" @dragover.prevent class="right">
                 <div 
@@ -85,8 +85,7 @@ export default {
                       
         },
         resort (event,target) {
-             let eles =event.currentTarget.children
-             console.log(eles, target)            
+             let eles =event.currentTarget.children          
             for (let i = 0; i < target.length; i++) {
                 
                 if (target[i].id == this.target.id) {
