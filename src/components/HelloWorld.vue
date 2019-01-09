@@ -1,33 +1,39 @@
 <template>
     <div id="box">
         <div class="box">
-            <div class="title"><span :class="{active: leftAll}" @click="leftSelectAll">表2</span><span>{{leftSelect}}/{{data1.length}}</span></div>
+            <div class="title">
+                <span :class="{active: leftSelect === data1.length}" @click="selectAll(data1)">表2</span>
+                <span>{{leftSelect}}/{{data1.length}}</span>
+            </div>
             <div @drop="dropLeft" @dragover.prevent class="left">
                 
                 <div 
-                @dragstart="dragstartLeft($event, item)"
+                @dragstart="dragstart($event, item)"
                 @dragend="dragend"
                 draggable="true" 
                 :class="{active: item.isSelect }" 
-                v-on:click="hanldleLeft(item.id)" 
+                v-on:click="hanldleClick(data1, item.id)" 
                 v-for="item in data1" 
                 :key="item.id">{{item.value}}</div>
             </div>
         </div>
         
         <div class="middle">
-            <div v-on:click="leftMove" :class="{active: leftCanMove}">移入</div>
-            <div v-on:click="rightMove" :class="{active: rightCanMove}">移除</div>
+            <div v-on:click="moveItem(data1, data2)" :class="{active: leftSelect > 0}">移入</div>
+            <div v-on:click="moveItem(data2,data1)" :class="{active: rightSelect > 0}">移除</div>
         </div>
         <div class="box">
-            <div class="title"><span :class="{active: rightAll}" @click="rightSelectAll">表2</span><span>{{rightSelect}}/{{data2.length}}</span></div>
+            <div class="title">
+                <span :class="{active: rightSelect === data2.length}" @click="selectAll(data2)">表2</span>
+                <span>{{rightSelect}}/{{data2.length}}</span>
+            </div>
             <div @drop="dropRight" @dragover.prevent class="right">
                 <div 
-                @dragstart="dragstartRight($event, item)"
+                @dragstart="dragstart($event, item)"
                 @dragend="dragend"
                 draggable="true" 
                 :class="{active: item.isSelect }" 
-                v-on:click="hanldleRight(item.id)" 
+                v-on:click="hanldleClick(data2, item.id)" 
                 v-for="item in data2" 
                 :key="item.id">{{item.value}}</div>
             </div>
@@ -51,126 +57,75 @@ export default {
     },
     methods: {
         dropRight (event) {
-            let id = event.dataTransfer.getData('id')
-            this.data1.forEach((item,index)=>{
-                if (item.id == id) {
-                    let temp = this.data1.splice(index,1)
-                    temp[0].isSelect = false
-                    this.data2.push(temp[0])
-                }
-            })
+            this.drop(this.data1, this.data2)
         },
         dropLeft (event) {
+          this.drop(this.data2, this.data1)
+        },
+        drop (handle, target) {
             let id = event.dataTransfer.getData('id')
-            this.data2.forEach((item,index)=>{
+            handle.forEach((item,index)=>{
                 if (item.id == id) {
-                    let temp = this.data2.splice(index,1)
+                    let temp = handle.splice(index,1)
                     temp[0].isSelect = false
-                    this.data1.push(temp[0])
+                    target.push(temp[0])
                 }
             })
         },
-        dragstartLeft (event,item) {
-            event.dataTransfer.setData('id', item.id)
-        },
-        dragstartRight (event,item) {
+        dragstart (event,item) {
             event.dataTransfer.setData('id', item.id)
         },
         dragend (event) {
             event.dataTransfer.clearData()
         },
-        hanldleLeft(id) {
-            this.data1.forEach(element => {
+        hanldleClick (data,id) {
+            data.forEach(element => {
                 if (element.id == id) {
                     element.isSelect = !element.isSelect
                 }
             });
         },
-        leftMove () {
-            let temp = this.data1.filter(item=> {
+        moveItem (handle, target) {
+            let temp = handle.filter(item=> {
                 return item.isSelect == true
             })
             if (temp.length <=0) return false
             temp.forEach(item=> {
-                let index = this.data1.indexOf(item)
-                this.data1.splice(index,1)
+                let index = handle.indexOf(item)
+                handle.splice(index,1)
                 item.isSelect = false
-                this.data2.push(item)
+                target.push(item)
             })
         },
-        hanldleRight(id) {
-             this.data2.forEach(element => {
-                if (element.id == id) {
-                    element.isSelect = !element.isSelect
+        selectAll (data) {
+            let isSelectAll = data.every(item => {
+                return item.isSelect == true
+            })
+            data.forEach(item=> {
+                if (isSelectAll) {
+                    item.isSelect = false
+                } else {
+                    item.isSelect = true
                 }
-            });
-        },
-        rightMove () {
-            let temp = this.data2.filter(item=> {
-                return item.isSelect == true
-            })
-            if (temp.length <=0) return false
-            temp.forEach(item=> {
-                let index = this.data2.indexOf(item)
-                this.data2.splice(index,1)
-                item.isSelect = false
-                this.data1.push(item)
-            })
-        },
-        rightSelectAll () {
-            this.data2.forEach(item=> {
-                item.isSelect = !item.isSelect
-            })
-        },
-        leftSelectAll () {
-            this.data1.forEach(item=> {
-                item.isSelect = !item.isSelect
+                
             })
         }
     },
     computed: {
-        leftCanMove () {
-            return this.data1.some(item=> {
-                return item.isSelect == true
-            })
-        },
         leftSelect () {
+            if (this.data1.length === 0) return false
             let arr =  this.data1.filter(item=> {
                 return item.isSelect == true
             })
             return arr.length
         },
-        rightCanMove () {
-            return this.data2.some(item=> {
-                return item.isSelect == true
-            }) 
-        },
         rightSelect () {
+            if (this.data2.length == 0) return false
             let arr =  this.data2.filter(item=> {
                 return item.isSelect == true
             })
             return arr.length
         },
-        leftAll () {
-            if (this.data1.length == 0) {
-                return false
-            } else {
-                return this.data1.every(item=> {
-                    return item.isSelect == true
-                })
-            }
-            
-        },
-        rightAll () {
-            if (this.data2.length == 0) {
-                return false
-            } else {
-                return this.data2.every(item=> {
-                    return item.isSelect == true
-                })
-            }
-            
-        }
     }
 }
 </script>
