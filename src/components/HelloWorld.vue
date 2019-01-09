@@ -5,9 +5,10 @@
                 <span :class="{active: leftSelect === data1.length}" @click="selectAll(data1)">表2</span>
                 <span>{{leftSelect}}/{{data1.length}}</span>
             </div>
-            <div @drop="dropLeft" @dragover.prevent class="left">
+            <div @drop="dropPub($event, 2)" @dragover.prevent class="left">
                 
                 <div 
+                @drag="ondrag"
                 @dragstart="dragstart($event, item)"
                 @dragend="dragend"
                 draggable="true" 
@@ -27,8 +28,9 @@
                 <span :class="{active: rightSelect === data2.length}" @click="selectAll(data2)">表2</span>
                 <span>{{rightSelect}}/{{data2.length}}</span>
             </div>
-            <div @drop="dropRight" @dragover.prevent class="right">
+            <div @drop="dropPub($event, 1)" @dragover.prevent class="right">
                 <div 
+                @drag="ondrag" 
                 @dragstart="dragstart($event, item)"
                 @dragend="dragend"
                 draggable="true" 
@@ -52,17 +54,25 @@ export default {
                 {id: 4,value: '项目4', isSelect: false},
                 {id: 5,value: '项目5', isSelect: false},
                 ],
-            data2:[{id: 6,value: '项目6', isSelect: false}]
+            data2:[{id: 6,value: '项目6', isSelect: false}],
+            target: {
+                y: '',
+                id: ''
+            }
         }
     },
     methods: {
-        dropRight (event) {
-            this.drop(event,this.data1, this.data2)
+        ondrag(event) {
+            this.target.y = event.y
         },
-        dropLeft (event) {
-          this.drop(event,this.data2, this.data1)
+        dropPub (event, type) {
+            if (type == 1) {
+                this.drop(event,this.data1, this.data2)
+            } else {
+                this.drop(event,this.data2, this.data1)
+            }
         },
-        drop (event,handle, target) {
+        drop (event,handle, target) {            
             let id = event.dataTransfer.getData('id')
             handle.forEach((item,index)=>{
                 if (item.id == id) {
@@ -71,8 +81,33 @@ export default {
                     target.push(temp[0])
                 }
             })
+            this.resort(event, target)
+                      
+        },
+        resort (event,target) {
+             let eles =event.currentTarget.children
+             console.log(eles, target)            
+            for (let i = 0; i < target.length; i++) {
+                
+                if (target[i].id == this.target.id) {
+                    target[i].y = this.target.y
+                } else {
+                    target[i].y = eles[i].getBoundingClientRect().y
+                }
+            }
+            for (let i = 0; i < target.length-1; i ++) {
+                for (let j = 0; j < target.length-i-1; j++ ) {
+                    if (target[j].y > target[j+1].y) {
+                        let swap = target[j]
+                        target[j] = target[j+1]
+                        target[j+1] = swap
+                    }
+                }
+            }
+            this.$forceUpdate()
         },
         dragstart (event,item) {
+            this.target.id = item.id
             event.dataTransfer.setData('id', item.id)
         },
         dragend (event) {
@@ -111,6 +146,7 @@ export default {
             })
         }
     },
+    
     computed: {
         leftSelect () {
             if (this.data1.length === 0) return false
@@ -130,7 +166,10 @@ export default {
 }
 </script>
 <style>
-
+* {
+        margin: 0;
+        padding: 0;
+    }
     #box {
         display: flex;
         justify-content: center;
