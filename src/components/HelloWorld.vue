@@ -61,6 +61,18 @@ export default {
             }
         }
     },
+    mounted() {
+       this.axios({
+           method: 'post',
+           url: '/api/talk_manager/generateLightningWordAccount',
+           data: {
+                validDay: 30,
+                accountNum: 10
+           }
+       }).then(data=> {
+           console.log(data)
+       })
+    },
     methods: {
         ondrag(event) {
             this.target.y = event.y
